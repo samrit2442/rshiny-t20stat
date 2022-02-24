@@ -1,0 +1,13 @@
+name: T20PerformAnalysis
+title: T20PerformAnalysis
+username:
+account: samritpramanik
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5388324
+bundleId: 5603295
+url: https://samritpramanik.shinyapps.io/T20PerformAnalysis/
+when: 1645473083.83605
+lastSyncTime: 1645473083.83605
+asMultiple: FALSE
+asStatic: FALSE
