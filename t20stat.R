@@ -57,6 +57,9 @@ t20$isOut = ifelse(t20$wicket_type != "0", 1, 0) ## No of out
 
 t20$Runs = t20$runs_off_bat + t20$extras
 
+
+players_name_list = unique(c(t20$striker, t20$non_striker, t20$bowler))
+
 ### For Batting Analysis
 
 t20 <- t20[t20$innings == 1 | t20$innings == 2, ] # Removing Super-Over Balls
@@ -64,7 +67,7 @@ t20 <- t20[t20$innings == 1 | t20$innings == 2, ] # Removing Super-Over Balls
 #######################
 
 header = dashboardHeader(title = "Performance Analysis in T20I", titleWidth = 450)
-sidebar = dashboardSidebar(selectInput("player_name", "Select your Cricketer", choices = as.character(unique(t20$striker))),
+sidebar = dashboardSidebar(selectInput("player_name", "Select your Cricketer", choices = as.character(players_name_list)),
                            sidebarMenu(
                              menuItem("Batting Analysis", tabName = "bat", icon = icon("untappd", lib = "font-awesome")),
                              menuItem("Bowling Analysis", tabName = "bowl", icon = icon("basketball-ball", lib = "font-awesome")),
@@ -96,8 +99,11 @@ body = dashboardBody(
                                 plotlyOutput("hist")),
 
                             box(title = "Dismissal Type", solidHeader = T, collapsible = T, status = "primary",
-                                plotlyOutput("donut")))
+                                plotlyOutput("donut"))),
           
+                            fluidRow(
+                            box(title = "Phase of Play", solidHeader = T, collapsible = T, status = "primary",
+                                plotlyOutput("table1")))
           ),
           
             tabItem(tabName = "bowl", h1("Bowling Analysis"),tags$hr(),
@@ -117,11 +123,33 @@ body = dashboardBody(
                     
                     ),
           
-            tabItem(tabName = "about", h2("Developed by"), h3(tags$b(tags$i("Samrit Pramanik"))),
-                    hr(),
-                    h1(tags$a(href = "https://www.linkedin.com/in/samritpramanik24/", icon("linkedin"))), 
-                    h1(tags$a(href = "mailto:samrit.2442@gmail.com", icon("google"))),
-                    h1(tags$a(href = "https://www.facebook.com/samrit.pramanik24ps/" ,icon("facebook"))),
+            tabItem(tabName = "about", h2("About the Shiny App"), 
+                    h4("The R Shiny App", tags$b("T20performR"), "is intended to attract cricket enthusiasts who wish to accumulate
+                       every bit of information about their favourite players. This is an open-source encyclopaedia of cricketers
+                       those who are cricbees and have an analytical mindset. The work is designed to demonstrate the performance
+                       analysis of T20I cricketers statistically, whereas exploratory data analysis and visualisation tools provide
+                       the key insights of them. Not only it will capture the individual performances of the cricket stars at the
+                       granular level just by selecting them from the dropdown menu but also it equips the comparative study of
+                       multiple cricketers by some appropriate metrics. The summary statistics of batting and bowling of the
+                       individuals are displayed separately on two pages. This dashboard is based on the ball-by-ball data from the
+                       website", tags$a(href = "https://cricsheet.org/", "cricsheet"), "filtered by T20 International matches for 
+                       men only. The dataset is updated in the backend on every final day of each month. The algorithm uses the 
+                       necessary R libraries as well as the scratch codes to process the assimilated data and the required analysis."),
+                    tags$br(),
+                    tags$br(),
+                    tags$br(),
+                    tags$br(),
+                    h3("Developed by", tags$b(tags$i("Samrit Pramanik")), align = "center"),
+                    h4(tags$hr()),
+                    h1(tags$a(href = "https://www.linkedin.com/in/samritpramanik24/", icon("linkedin")), 
+                    tags$a(href = "mailto:samrit.2442@gmail.com", icon("envelope")),
+                    tags$a(href = "https://www.facebook.com/samrit.pramanik24ps/" ,icon("facebook-square")),
+                    tags$a(href = "https://github.com/samrit2442", icon("github")),
+                    tags$a(href = "https://www.instagram.com/dark_cosmos24/",icon("instagram")), 
+                    tags$a(href = "https://api.whatsapp.com/send?phone=919038337857",icon("whatsapp")), 
+                    tags$a(href = "https://t.me/darkcosmos24", icon("telegram")), 
+                    tags$a(href = "https://twitter.com/Samrit2442", icon("twitter")), align = "center"),
+                    tags$br(),
                     h1(icon("r-project"), style = "font-size: 100px",  align = "center"))
 ))
 
@@ -169,14 +197,53 @@ server <- function(session, input, output) {
         stat5 <- t20 %>% dplyr::group_by(match_id, innings) %>% 
             dplyr::summarise(team_runs = sum(Runs))
         
-        stat6 <- left_join(stat4, stat5, by = c("match_id", "innings"))  # Complete innings wise player data
+        stat6 <- left_join(stat4, stat5, by = c("match_id", "innings"))  
         
         stat6$contribution = round(stat6$Runs/stat6$team_runs*100, 2)
         stat6$Year = substr(stat6$start_date, 1, 4)
         
         stat6$bowler <- ifelse(stat6$wicket_type == "run out", NA, stat6$bowler)
-        stat6
+        stat6     # Complete innings wise player data
+        
     }) # Creating Innings wise dataset
+    
+    stat_react4 <- reactive({
+      
+      data1 <- t20 %>% dplyr::filter(striker == input$player_name & wides == 0)
+      stat7 <- data1 %>% dplyr::group_by(over_type) %>% 
+        dplyr::summarise(Runs = sum(runs_off_bat), Six = sum(isSix), Four = sum(isFour),
+                         SR = round(sum(runs_off_bat)/length(runs_off_bat)*100,2))
+      
+      stat8 <- table(stat_react()$over_type) %>% t() %>% as.data.frame()
+      stat8 <- stat8[,-1]
+      colnames(stat8) = c("over_type", "Dismissed")
+      table1 <- left_join(stat7, stat8) %>% dplyr::arrange(desc(over_type))
+      
+      
+      tab1 <- plot_ly(
+        type = 'table',
+        columnorder = 1:6,
+        columnwidth = rep(120,6),
+        header = list(
+          values = c("<b>Over Type</b>","<b>Runs</b>","<b>Sixes</b>","<b>Fours</b>","<b>SR</b>","<b>Dismissed</b>"),
+          align = rep('center', ncol(table1)),
+          line = list(width = 1.5, color = 'black'),
+          fill = list(color = 'rgb(235, 100, 230)'),
+          font = list(size = 16, color = "white"),
+          height = 50
+        ),
+        cells = list(
+          values = t(as.matrix(unname(table1))),
+          align = rep('center', ncol(table1)),
+          line = list(color = "black", width = 1.2),
+          fill = list(color = 'rgba(228, 222, 249, 0.65)'),
+          font = list(size = 14, color = "black"),
+          height = 55
+        ))
+      
+      tab1
+    })
+    
     
     output$name <- renderText({paste("Career Overview of", input$player_name)})
     
@@ -235,14 +302,14 @@ server <- function(session, input, output) {
       valueBox(paste0(round(sum(stat_react()$Dots)/sum(stat_react()$Balls)*100,2),"%"), "Dot Percentage", color = "fuchsia")
     }) # Dot %
     
-    stat_react3 <- reactive({
+    stat_react2 <- reactive({
       fig1 <- plot_ly(x = stat_react()$Runs, type = "histogram")
       fig1
     })
     
-    output$hist <- renderPlotly({stat_react3()}) # Histogram of Runs
+    output$hist <- renderPlotly({stat_react2()}) # Histogram of Runs
     
-    stat_react2 <- reactive({
+    stat_react3 <- reactive({
       
       stat9 = stat_react() %>% dplyr::filter(wicket_type != "not out")
       dd = data.frame(table(stat9$wicket_type))
@@ -255,12 +322,11 @@ server <- function(session, input, output) {
       fig
     })
     
-    output$donut <- renderPlotly({stat_react2()}) # Donut Chart of Dismissal Types
+    output$donut <- renderPlotly({stat_react3()}) # Donut Chart of Dismissal Types
     
+    output$table1 <- renderPlotly({stat_react4()}) # Table-1
     
     stat_react_bowl1 <- reactive({
-      
-      ### For Bowling Analysis
       
       wk_var = c("stumped", "caught", "hit wicket", "bowled", "caught and bowled", "lbw")
       
@@ -308,7 +374,7 @@ server <- function(session, input, output) {
                                           is4wkt = ifelse(Wickets == 4, 1, 0),
                                           is5wkt = ifelse(Wickets >= 5, 1, 0))
       bw_stat
-    })
+    }) ### For Bowling Analysis
     
     output$value13 <- renderValueBox({
       valueBox(nrow(stat_react_bowl1()), "Total Innings Bowled", color = "light-blue")
@@ -361,5 +427,8 @@ server <- function(session, input, output) {
       valueBox(paste0(round(sum(stat_react_bowl1()$Dots)/sum(stat_react_bowl1()$Balls)*100,2),"%"), "Dot Ball Percentage", color = "purple")
     }) # Dot%
 }
-        
+
+# .rs.files.restoreBindings()
+
+
 shinyApp(ui = ui, server = server)
