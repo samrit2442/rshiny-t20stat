@@ -5,9 +5,9 @@ account: samritpramanik
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 5388324
-bundleId: 5687463
+bundleId: 5696510
 url: https://samritpramanik.shinyapps.io/T20PerformAnalysis/
-when: 1647363210.37301
-lastSyncTime: 1647363210.37301
+when: 1647543165.15343
+lastSyncTime: 1647543165.15343
 asMultiple: FALSE
 asStatic: FALSE

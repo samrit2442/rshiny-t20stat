@@ -10,30 +10,15 @@ library(RcppArmadillo)
 library(shiny)
 library(shinythemes)
 library(shinydashboard)
+# library(shinydashboardPlus)
 library(fontawesome)
 library(htmltools)
 library(scales)
 
-t20 <- read.csv("t20_data_till_t20WC_2021.csv", header = T) ### Reading file from external sources
+t20 <- read.csv("t20_data_05_Mar_2022.csv", header = T) ### Reading file from external sources
 
 
 ####################### DATA PREPROSESSING ###########################################
-
-# mydir = "E:/Cricket_Project_Personal/T20I till T20WC2021"
-# t20_data = list.files(path=mydir, pattern="*.csv", full.names=TRUE)
-# 
-# # class(t20_data[1])
-# # length(t20_data)
-# 
-# t = vector(mode = "list", length = length(t20_data)/2)
-# 
-# for(i in 1:(length(t20_data)/2))
-# {
-#   t[[i]] = read.csv(file = t20_data[2*i-1], header = T)
-# }
-# 
-# t20 = rbind.fill(t)
-
 
 t20_bkp <- t20  ## Backup of the original raw data
 
@@ -124,7 +109,8 @@ body = dashboardBody(
                     ),
           
             tabItem(tabName = "about", h2("About the Shiny App"), 
-                    h4("The R Shiny App", tags$b("T20performR"), "is intended to attract cricket enthusiasts who wish to accumulate
+                    h4(p(style = "text-align: justify; font-size = 14px",
+                    "The R Shiny App", tags$b("T20performR"), "is intended to attract cricket enthusiasts who wish to accumulate
                        every bit of information about their favourite players. This is an open-source encyclopaedia of cricketers
                        those who are cricbees and have an analytical mindset. The work is designed to demonstrate the performance
                        analysis of T20I cricketers statistically, whereas exploratory data analysis and visualisation tools provide
@@ -134,23 +120,29 @@ body = dashboardBody(
                        individuals are displayed separately on two pages. This dashboard is based on the ball-by-ball data from the
                        website", tags$a(href = "https://cricsheet.org/", "cricsheet"), "filtered by T20 International matches for 
                        men only. The dataset is updated in the backend on every final day of each month. The algorithm uses the 
-                       necessary R libraries as well as the scratch codes to process the assimilated data and the required analysis."),
+                       necessary R libraries as well as the scratch codes to process the assimilated data and the required analysis.")),
+                    h5(tags$em(tags$b("*Last updated on March 5, 2022  23:59:59 IST")), align = "right"),
                     tags$br(),
                     tags$br(),
                     tags$br(),
                     tags$br(),
-                    h3("Developed by", tags$b(tags$i("Samrit Pramanik")), align = "center"),
-                    h4(tags$hr()),
+                    h4("Developed by", tags$b(tags$i("Samrit Pramanik")), align = "center"),
+                    h6(tags$hr()),
                     h1(tags$a(href = "https://www.linkedin.com/in/samritpramanik24/", icon("linkedin")), 
                     tags$a(href = "mailto:samrit.2442@gmail.com", icon("envelope")),
-                    tags$a(href = "https://www.facebook.com/samrit.pramanik24ps/" ,icon("facebook-square")),
+                    tags$a(href = "https://www.facebook.com/samrit.pramanik24ps/" , icon("facebook-square")),
                     tags$a(href = "https://github.com/samrit2442", icon("github")),
-                    tags$a(href = "https://www.instagram.com/dark_cosmos24/",icon("instagram")), 
-                    tags$a(href = "https://api.whatsapp.com/send?phone=919038337857",icon("whatsapp")), 
+                    tags$a(href = "https://www.instagram.com/dark_cosmos24/", icon("instagram")), 
+                    tags$a(href = "https://api.whatsapp.com/send?phone=919038337857", icon("whatsapp")), 
                     tags$a(href = "https://t.me/darkcosmos24", icon("telegram")), 
                     tags$a(href = "https://twitter.com/Samrit2442", icon("twitter")), align = "center"),
                     tags$br(),
-                    h1(icon("r-project"), style = "font-size: 100px",  align = "center"))
+                    h1(icon("r-project"), style = "font-size: 100px",  align = "center"),
+                    tags$br(),
+                    tags$br(),
+                    tags$br(),
+                    # tags$blockquote("Shiny-Box is still under continuous development. Please look forward to future updates!"),
+                    h5("Copyright", icon("copyright"), " 2022 ", tags$a(href = "https://shiny.rstudio.com/", "Shiny - RStudio"), ". All Rights Reserved."))
 ))
 
 ui <- dashboardPage(header = header, sidebar = sidebar, body = body, skin = "black",  title = "Performance Analysis")    
@@ -429,6 +421,5 @@ server <- function(session, input, output) {
 }
 
 # .rs.files.restoreBindings()
-
 
 shinyApp(ui = ui, server = server)
