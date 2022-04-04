@@ -120,7 +120,7 @@ body = dashboardBody(
                        individuals are displayed separately on two pages. This dashboard is based on the ball-by-ball data from the
                        website", tags$a(href = "https://cricsheet.org/", "cricsheet"), "filtered by T20 International matches for 
                        men only. The dataset is updated in the backend on every final day of each month. The algorithm uses the 
-                       necessary R libraries as well as the scratch codes to process the assimilated data and the required analysis.")),
+                       necessary R libraries (packages) as well as the scratch codes to process the assimilated data and the required analysis.")),
                     h5(tags$em(tags$b("*Last updated on April 2, 2022  23:59:59 IST")), align = "right"), ## Date Update
                     tags$br(),
                     tags$br(),
