@@ -1,10 +1,10 @@
 library(plyr)
 
-# .rs.files.restoreBindings()
+.rs.files.restoreBindings()
 
-mydir = "E:/Cricket_Project_Personal/T20I_02_Apr_2022"
+mydir = "E:/Cricket_Project_Personal/T20I_10_Apr_2022"
 t20_data = list.files(path=mydir, pattern="*.csv", full.names=TRUE)
-t20_data
+# t20_data
 
 class(t20_data[1])
 length(t20_data)
@@ -17,5 +17,5 @@ for(i in 1:(length(t20_data)/2))
 }
 t20 = rbind.fill(t)
 
-write.csv(t20, file = "E:/Cricket_Project_Personal/t20_data_02_Apr_2022.csv")
+write.csv(t20, file = "E:/Cricket_Project_Personal/t20_data_10_Apr_2022.csv")
 
