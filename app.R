@@ -15,7 +15,7 @@ library(fontawesome)
 library(htmltools)
 library(scales)
 
-t20 <- read.csv("t20_data_10_Apr_2022.csv", header = T) ### Reading file from external sources
+t20 <- read.csv("t20_data_12_May_2022.csv", header = T) ### Reading file from external sources
 
 
 ####################### DATA PREPROSESSING ###########################################
@@ -122,7 +122,7 @@ body = dashboardBody(
                        website", tags$a(href = "https://cricsheet.org/", "cricsheet"), "filtered by T20 International matches for 
                        men only. The dataset is updated in the backend on every final day of each month. The algorithm uses the 
                        necessary R libraries (packages) as well as the scratch codes to process the assimilated data and the required analysis.")),
-                    h5(tags$em(tags$b(paste("*Last updated on April 10, 2022  23:59:59 IST (", tot_mat,
+                    h5(tags$em(tags$b(paste("*Last updated on May 12, 2022  23:59:59 IST (", tot_mat,
                                " matches covered)"))), align = "right"), ## Date Update
                     tags$br(),
                     tags$br(),
