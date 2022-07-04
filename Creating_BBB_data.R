@@ -2,7 +2,11 @@ library(plyr)
 
 .rs.files.restoreBindings()
 
-mydir = "C:/Users/Samrit Pramanik/Documents/Cricket_Project_Personal/T20I_12_May_2022"
+url <- "https://cricsheet.org/downloads/t20s_male_csv2.zip"
+download.file(url, dest = "dataset.zip", mode = "wb")
+unzip("dataset.zip", exdir = "./data_sets")
+
+mydir = "./data_sets/"
 t20_data = list.files(path=mydir, pattern="*.csv", full.names=TRUE)
 # t20_data
 
@@ -17,5 +21,5 @@ for(i in 1:(length(t20_data)/2))
 }
 t20 = rbind.fill(t)
 
-write.csv(t20, file = "C:/Users/Samrit Pramanik/Documents/Cricket_Project_Personal/t20_data_12_May_2022.csv")
+# write.csv(t20, file = "C:/Users/Samrit Pramanik/Documents/Cricket_Project_Personal/t20_data_12_May_2022.csv")
 
