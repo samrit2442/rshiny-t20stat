@@ -14,6 +14,7 @@ library(shinydashboard)
 library(fontawesome)
 library(htmltools)
 library(scales)
+library(reactablefmtr)
 
 # t20 <- read.csv("t20_data_12_May_2022.csv", header = T) ### Reading file from external sources
 
@@ -42,17 +43,27 @@ t20$isSix = ifelse(t20$runs_off_bat == 6, 1, 0) ## No of 6's
 t20$isOut = ifelse(t20$wicket_type != "0", 1, 0) ## No of out
 
 t20$Runs = t20$runs_off_bat + t20$extras
-tot_mat = t20 %>% select(match_id) %>% unique() %>% nrow()
+tot_mat = t20 |> select(match_id) |> unique() |> nrow()
 
-players_name_list = unique(c(t20$striker, t20$non_striker, t20$bowler))
+## Formatting last date of data update
 
+last_date <- t20$start_date |> unique() |> as.Date(format = "%Y-%m-%d") |> max()
+m <- format(last_date, "%m") |> as.numeric()
+d <- format(last_date, "%d")
+y <- format(last_date, "%Y")
+last_date_updated <- paste0(month.abb[m], " ", d,", ",y)
+
+## For getting all players name as a vector
+
+players_name_list = unique(c(t20$striker, t20$non_striker, t20$bowler)) |> as.character()
 ### For Batting Analysis
 
 t20 <- t20[t20$innings == 1 | t20$innings == 2, ] # Removing Super-Over Balls
 
 ########################### ui ###############################################
 
-header = dashboardHeader(title = "Performance Analysis in T20I", titleWidth = 450)
+header = dashboardHeader(title = "Performance Analysis in T20I",
+                         titleWidth = 450)
 sidebar = dashboardSidebar(selectInput("player_name", "Select your Cricketer", choices = as.character(players_name_list)),
                            sidebarMenu(
                              menuItem("Batting Analysis", tabName = "bat", icon = icon("untappd", lib = "font-awesome")),
@@ -90,7 +101,7 @@ body = dashboardBody(
           
                             fluidRow(
                             box(title = "Phase of Play", solidHeader = T, collapsible = T, status = "primary",
-                                plotlyOutput("table1")))
+                                reactableOutput("table1", height = "200px", width = "600px")))
           ),
           
             tabItem(tabName = "bowl", h1("Bowling Analysis"),tags$hr(),
@@ -105,8 +116,13 @@ body = dashboardBody(
                            valueBoxOutput("value20", width = 2),
                            valueBoxOutput("value21", width = 2),
                            valueBoxOutput("value22", width = 2),
-                           valueBoxOutput("value23", width = 2))
+                           valueBoxOutput("value23", width = 2)),
                            # valueBoxOutput("value24", width = 2))
+                    
+                          fluidRow(
+                          box(title = "Bowling Performance against Opponents", solidHeader = T, collapsible = T, status = "primary",
+                            reactableOutput("table2", height = "auto", width = "600px")))
+                    
                     
                     ),
           
@@ -123,7 +139,7 @@ body = dashboardBody(
                        website", tags$a(href = "https://cricsheet.org/", "cricsheet"), "filtered by T20 International matches for 
                        men only. The dataset is updated in the backend on every final day of each month. The algorithm uses the 
                        necessary R libraries (packages) as well as the scratch codes to process the assimilated data and the required analysis.")),
-                    h5(tags$em(tags$b(paste("*Last updated on Jun 19, 2022  23:59:59 IST (", tot_mat,
+                    h5(tags$em(tags$b(paste("*Last updated on", last_date_updated, "23:59:59 IST (", tot_mat,
                                " matches covered)"))), align = "right"), ## Date Update
                     tags$br(),
                     tags$br(),
@@ -148,7 +164,7 @@ body = dashboardBody(
                     h5("Copyright", icon("copyright"), " 2022 ", tags$a(href = "https://shiny.rstudio.com/", "Shiny - RStudio"), ". All Rights Reserved."))
 ))
 
-ui <- dashboardPage(header = header, sidebar = sidebar, body = body, skin = "black",  title = "Performance Analysis")    
+ui <- dashboardPage(header = header, sidebar = sidebar, body = body, skin = "black")
 
 
 ####################################### server ################################
@@ -160,22 +176,22 @@ server <- function(session, input, output) {
     stat_react <- reactive({
         ## Computing Total Number of Dismissal
         
-        diss <- t20 %>% dplyr::filter(player_dismissed == input$player_name) %>%
+        diss <- t20 |> dplyr::filter(player_dismissed == input$player_name) |>
             dplyr::select(match_id,  wicket_type, over_type, bowler)
         
         # Removing Wide Balls
         
-        plyr_data <- t20 %>% dplyr::filter(striker == input$player_name & wides == 0)
+        plyr_data <- t20 |> dplyr::filter(striker == input$player_name & wides == 0)
         
         ## Computing Total Innings played
         
-        innings <- t20 %>% dplyr::filter(striker == input$player_name | non_striker == input$player_name) %>% 
-            dplyr::summarise(Innings = n_distinct(match_id)) %>% as.numeric()
+        innings <- t20 |> dplyr::filter(striker == input$player_name | non_striker == input$player_name) |> 
+            dplyr::summarise(Innings = n_distinct(match_id)) |> as.numeric()
         
         ## Deducing Innings wise Statistics
         
-        stat1 <- plyr_data %>% dplyr::filter(striker == input$player_name) %>% 
-            dplyr::group_by(start_date, match_id) %>% 
+        stat1 <- plyr_data |> dplyr::filter(striker == input$player_name) |> 
+            dplyr::group_by(start_date, match_id) |> 
             dplyr::summarise(Runs = sum(runs_off_bat), Balls = length(runs_off_bat),
                              SR = round(Runs/Balls*100,2), 
                              Fours = sum(isFour), Sixes = sum(isSix),
@@ -189,12 +205,12 @@ server <- function(session, input, output) {
         stat2$isHundred <- ifelse(stat2$Runs >= 100, 1, 0) # No of 100's
         stat2$isNO <- ifelse(stat2$wicket_type == "not out", 1, 0) ## Not Out Innings flag
         
-        stat3 <- plyr_data %>% dplyr::filter(striker == input$player_name) %>%
-            dplyr::group_by(match_id) %>% dplyr::select(match_id, innings, bowling_team, venue) %>% unique()
+        stat3 <- plyr_data |> dplyr::filter(striker == input$player_name) |>
+            dplyr::group_by(match_id) |> dplyr::select(match_id, innings, bowling_team, venue) |> unique()
         
         stat4 <- left_join(stat2, stat3)   
         
-        stat5 <- t20 %>% dplyr::group_by(match_id, innings) %>% 
+        stat5 <- t20 |> dplyr::group_by(match_id, innings) |> 
             dplyr::summarise(team_runs = sum(Runs))
         
         stat6 <- left_join(stat4, stat5, by = c("match_id", "innings"))  
@@ -206,44 +222,6 @@ server <- function(session, input, output) {
         stat6     # Complete innings wise player data
         
     }) # Creating Innings wise dataset
-    
-    stat_react4 <- reactive({
-      
-      data1 <- t20 %>% dplyr::filter(striker == input$player_name & wides == 0)
-      stat7 <- data1 %>% dplyr::group_by(over_type) %>% 
-        dplyr::summarise(Runs = sum(runs_off_bat), Six = sum(isSix), Four = sum(isFour),
-                         SR = round(sum(runs_off_bat)/length(runs_off_bat)*100,2))
-      
-      stat8 <- table(stat_react()$over_type) %>% t() %>% as.data.frame()
-      stat8 <- stat8[,-1]
-      colnames(stat8) = c("over_type", "Dismissed")
-      table1 <- left_join(stat7, stat8) %>% dplyr::arrange(desc(over_type))
-      
-      
-      tab1 <- plot_ly(
-        type = 'table',
-        columnorder = 1:6,
-        columnwidth = rep(120,6),
-        header = list(
-          values = c("<b>Over Type</b>","<b>Runs</b>","<b>Sixes</b>","<b>Fours</b>","<b>SR</b>","<b>Dismissed</b>"),
-          align = rep('center', ncol(table1)),
-          line = list(width = 1.5, color = 'black'),
-          fill = list(color = 'rgb(235, 100, 230)'),
-          font = list(size = 16, color = "white"),
-          height = 50
-        ),
-        cells = list(
-          values = t(as.matrix(unname(table1))),
-          align = rep('center', ncol(table1)),
-          line = list(color = "black", width = 1.2),
-          fill = list(color = 'rgba(228, 222, 249, 0.65)'),
-          font = list(size = 14, color = "black"),
-          height = 55
-        ))
-      
-      tab1
-    })
-    
     
     # output$flag <- renderUI({
     #   tags$img(src = "india.png", width = 50, height = 50)
@@ -315,11 +293,11 @@ server <- function(session, input, output) {
     
     stat_react3 <- reactive({
       
-      stat9 = stat_react() %>% dplyr::filter(wicket_type != "not out")
+      stat9 = stat_react() |> dplyr::filter(wicket_type != "not out")
       dd = data.frame(table(stat9$wicket_type))
       
-      fig <- dd %>% plot_ly(labels = ~Var1, values = ~Freq) %>%
-        add_pie(hole = 0.5) %>% 
+      fig <- dd |> plot_ly(labels = ~Var1, values = ~Freq) |>
+        add_pie(hole = 0.5) |> 
         layout(showlegend = T,
                xaxis = list(showgrid = F, zeroline = F, showticklabels = F),
                yaxis = list(showgrid = F, zeroline = F, showticklabels = F))
@@ -328,7 +306,56 @@ server <- function(session, input, output) {
     
     output$donut <- renderPlotly({stat_react3()}) # Donut Chart of Dismissal Types
     
-    output$table1 <- renderPlotly({stat_react4()}) # Table-1
+    stat_react4 <- reactive({
+      
+      data1 <- t20 |> dplyr::filter(striker == input$player_name & wides == 0)
+      stat7 <- data1 |> dplyr::group_by(over_type) |> 
+        dplyr::summarise(Runs = sum(runs_off_bat), Six = sum(isSix), Four = sum(isFour),
+                         SR = round(sum(runs_off_bat)/length(runs_off_bat)*100,2))
+      
+      stat8 <- table(stat_react()$over_type) |> t() |> as.data.frame()
+      stat8 <- stat8[,-1]
+      colnames(stat8) = c("over_type", "Dismissed")
+      table1 <- left_join(stat7, stat8) |> dplyr::arrange(desc(over_type))
+      colnames(table1) <- c("Over Type","Runs","Sixes","Fours","SR","Dismissed")
+      
+      reactable(
+        table1,
+        pagination = FALSE,
+        compact = TRUE,
+        defaultColDef = colDef(
+          cell = data_bars(table1,
+                           fill_color = c("blue", "black"),
+                           fill_gradient = TRUE,
+                           bar_height = 30,
+                           background = "lightgrey")
+        )
+      )
+      # tab1 <- plot_ly(
+      #   type = 'table',
+      #   columnorder = 1:6,
+      #   columnwidth = rep(120,6),
+      #   header = list(
+      #     values = c("<b>Over Type</b>","<b>Runs</b>","<b>Sixes</b>","<b>Fours</b>","<b>SR</b>","<b>Dismissed</b>"),
+      #     align = rep('center', ncol(table1)),
+      #     line = list(width = 1.5, color = 'black'),
+      #     fill = list(color = 'rgb(235, 100, 230)'),
+      #     font = list(size = 16, color = "white"),
+      #     height = 50
+      #   ),
+      #   cells = list(
+      #     values = t(as.matrix(unname(table1))),
+      #     align = rep('center', ncol(table1)),
+      #     line = list(color = "black", width = 1.2),
+      #     fill = list(color = 'rgba(228, 222, 249, 0.65)'),
+      #     font = list(size = 14, color = "black"),
+      #     height = 55
+      #   ))
+      # 
+      # tab1
+    })
+    
+    output$table1 <- renderReactable({stat_react4()}) # Table-1
     
     stat_react_bowl1 <- reactive({
       
@@ -338,47 +365,72 @@ server <- function(session, input, output) {
       
       ## To find out Runs and Wickets at each innings
       
-      bw_stat1 <- t20 %>% dplyr::filter(bowler == input$player_name & legbyes == 0 & byes == 0 & penalty == 0) %>% 
-        dplyr::group_by(start_date, match_id) %>%
+      bw_stat1 <- t20 |> dplyr::filter(bowler == input$player_name & legbyes == 0 & byes == 0 & penalty == 0) |> 
+        dplyr::group_by(start_date, match_id) |>
         dplyr::summarise(Runs = sum(Runs), Wickets = sum(isBowler_wicket))
       
       ## To find out Dot Balls at each innings
       
-      bw_stat2 <- t20 %>% dplyr::filter(bowler == input$player_name) %>% 
-        dplyr::mutate(isBowlDot = ifelse(runs_off_bat + wides + noballs == 0,1,0)) %>% 
-        dplyr::group_by(match_id) %>% 
+      bw_stat2 <- t20 |> dplyr::filter(bowler == input$player_name) |> 
+        dplyr::mutate(isBowlDot = ifelse(runs_off_bat + wides + noballs == 0,1,0)) |> 
+        dplyr::group_by(match_id) |> 
         dplyr::summarise(Dots = sum(isBowlDot))
       
       bw_stat <- left_join(bw_stat1, bw_stat2, by = "match_id")
       
       ## To find out total balls bowled in each innings
       
-      bw_stat3 <- t20 %>% dplyr::filter(bowler == input$player_name & wides == 0 & noballs == 0) %>%
-        dplyr::group_by(match_id) %>% 
+      bw_stat3 <- t20 |> dplyr::filter(bowler == input$player_name & wides == 0 & noballs == 0) |>
+        dplyr::group_by(match_id) |> 
         dplyr::summarise(Balls = length(runs_off_bat))
       
       bw_stat <- left_join(bw_stat, bw_stat3, by = "match_id")
       
       # https://youtu.be/UmDItbiDV6o (23:08 - 23:45) ### Highligths of Ban vs SL 18 Sep 2007
       
-      bw_stat4 <- t20 %>% dplyr::filter(bowler == input$player_name) %>%
-        dplyr::mutate(BowlRuns = runs_off_bat + wides + noballs) %>%
-        dplyr::group_by(match_id, over) %>%
-        dplyr::summarise(isMaiden = ifelse(sum(BowlRuns) == 0,1,0)) %>% 
-        dplyr::group_by(match_id) %>% dplyr::summarise(Maiden = sum(isMaiden))
+      bw_stat4 <- t20 |> dplyr::filter(bowler == input$player_name) |>
+        dplyr::mutate(BowlRuns = runs_off_bat + wides + noballs) |>
+        dplyr::group_by(match_id, over) |>
+        dplyr::summarise(isMaiden = ifelse(sum(BowlRuns) == 0,1,0)) |> 
+        dplyr::group_by(match_id) |> dplyr::summarise(Maiden = sum(isMaiden))
       
       bw_stat <- left_join(bw_stat, bw_stat4, by = "match_id")
       
-      bw_stat5 <- t20 %>% dplyr::filter(bowler == input$player_name) %>%
-        dplyr::group_by(match_id) %>% dplyr::select(match_id, innings, venue, batting_team) %>% unique()
+      bw_stat5 <- t20 |> dplyr::filter(bowler == input$player_name) |>
+        dplyr::group_by(match_id) |> dplyr::select(match_id, innings, venue, batting_team) |> unique()
       
       bw_stat <- left_join(bw_stat, bw_stat5, by = "match_id")
       
-      bw_stat = bw_stat %>% dplyr::mutate(Econ = round(Runs/Balls*6,2),
+      bw_stat <- bw_stat |> dplyr::mutate(Econ = round(Runs/Balls*6,2),
                                           is4wkt = ifelse(Wickets == 4, 1, 0),
                                           is5wkt = ifelse(Wickets >= 5, 1, 0))
       bw_stat
+      
     }) ### For Bowling Analysis
+    
+    stat_react_bowl2 <- reactive({
+      
+      bw_stat6 <- stat_react_bowl1() |> dplyr::group_by(batting_team) |>
+        summarise(Innings = length(match_id), Wickets = sum(Wickets),
+                  Dots = sum(Dots))
+      
+      reactable(
+        bw_stat6,
+        pagination = FALSE,
+        compact = TRUE,
+        defaultColDef = colDef(
+          cell = data_bars(bw_stat6,
+                           fill_color = c("blue", "black"),
+                           fill_gradient = TRUE,
+                           bar_height = 30,
+                           background = "lightgrey")
+      ))
+    })
+    
+    output$table2 <- renderReactable({stat_react_bowl2()}) # Table-2
+    
+    
+    
     
     output$value13 <- renderValueBox({
       valueBox(nrow(stat_react_bowl1()), "Total Innings Bowled", color = "light-blue")

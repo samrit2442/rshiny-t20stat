@@ -5,9 +5,10 @@ account: samritpramanik
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 5388324
-bundleId: 6066379
+bundleId: 6121179
 url: https://samritpramanik.shinyapps.io/T20PerformAnalysis/
-when: 1656885062.16812
-lastSyncTime: 1656885062.16813
+when: 1658442717.47591
+lastSyncTime: 1658442717.47592
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: dataset.zip|demo.R|T20_analysis_till_2021WC.R
