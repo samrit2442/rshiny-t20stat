@@ -1,15 +1,20 @@
 library(plyr)
+library(reader)
 # .rs.files.restoreBindings()
 
 date <- format(Sys.time(), c("%d","%b","%Y","_","%H","%M"))
 dataset_name <- paste0(date, collapse = '') |> toupper()
-dataset_name <- paste0("./DATASET", dataset_name)
+dataset_name <- paste0("./DATASET_", dataset_name)
 
 url <- "https://cricsheet.org/downloads/t20s_male_csv2.zip"
 download.file(url, dest = "dataset.zip", mode = "wb")
 unzip("dataset.zip", exdir = dataset_name)
 
 mydir = paste0(dataset_name, "/")
+### For Checking the last updated date
+readme <- list.files(path=mydir, pattern="*.txt", full.names=TRUE)
+n.readLines(paste0(mydir, "/README.txt"), header = FALSE, n = 3,  skip = 121)
+
 t20_data = list.files(path=mydir, pattern="*.csv", full.names=TRUE)
 # t20_data
 
