@@ -12,10 +12,10 @@ unzip("dataset.zip", exdir = dataset_name)
 
 mydir = paste0(dataset_name, "/")
 ### For Checking the last updated date
-readme <- list.files(path=mydir, pattern="*.txt", full.names=TRUE)
+readme <- list.files(path = mydir, pattern = "*.txt", full.names = TRUE)
 n.readLines(paste0(mydir, "/README.txt"), header = FALSE, n = 3,  skip = 121)
 
-t20_data = list.files(path=mydir, pattern="*.csv", full.names=TRUE)
+t20_data = list.files(path = mydir, pattern = "*.csv", full.names = TRUE)
 # t20_data
 
 class(t20_data[1])
