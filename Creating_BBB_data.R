@@ -25,7 +25,7 @@ t = vector(mode = "list", length = length(t20_data)/2)
 
 for(i in 1:(length(t20_data)/2))
 {
-  t[[i]] = read.csv(file = t20_data[2*i-1], header = T)
+  t[[i]] = read.csv(file = t20_data[2*i - 1], header = T)
 }
 t20 = rbind.fill(t)
 
