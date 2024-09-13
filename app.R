@@ -18,6 +18,7 @@ library(reactablefmtr)
 
 # t20 <- read.csv("t20_data_12_May_2022.csv", header = T) ### Reading file from external sources
 
+t20 <- readRDS("./data/t20.rds")
 
 ####################### DATA PREPROSESSING ###########################################
 
