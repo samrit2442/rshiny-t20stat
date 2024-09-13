@@ -51,7 +51,7 @@ last_date <- t20$start_date |> unique() |> as.Date(format = "%Y-%m-%d") |> max()
 m <- format(last_date, "%m") |> as.numeric()
 d <- format(last_date, "%d")
 y <- format(last_date, "%Y")
-last_date_updated <- paste0(month.abb[m], " ", d,", ",y)
+last_date_updated <- paste0(month.name[m], " ", d,", ",y)
 
 ## For getting all players name as a vector
 
@@ -74,7 +74,7 @@ sidebar = dashboardSidebar(selectInput("player_name", "Select your Cricketer", c
 body = dashboardBody(
         tabItems(
           tabItem(tabName = "bat",
-          span(textOutput("name", inline = T), style="font-size: 45px; font-style: bold", uiOutput("flag", inline = T)),
+          span(textOutput("name", inline = T), style = "font-size: 45px; font-style: bold", uiOutput("flag", inline = T)),
           tags$br(),
                     column(12,
                             valueBoxOutput("value1", width = 2),
@@ -161,7 +161,7 @@ body = dashboardBody(
                     tags$br(),
                     tags$br(),
                     # tags$blockquote("Shiny-Box is still under continuous development. Please look forward to future updates!"),
-                    h5("Copyright", icon("copyright"), " 2022 ", tags$a(href = "https://shiny.rstudio.com/", "Shiny - RStudio"), ". All Rights Reserved."))
+                    h5("Copyright", icon("copyright"), " 2023 ", tags$a(href = "https://shiny.rstudio.com/", "Shiny - RStudio"), ". All Rights Reserved."))
 ))
 
 ui <- dashboardPage(header = header, sidebar = sidebar, body = body, skin = "black")
@@ -452,7 +452,7 @@ server <- function(session, input, output) {
       BBI = ""
       W = max(stat_react_bowl1()$Wickets)
       R = min(stat_react_bowl1()$Runs[which(stat_react_bowl1()$Wickets == W)])
-      if(sum(stat_react_bowl1()$Wickets) == 0)
+      if (sum(stat_react_bowl1()$Wickets) == 0)
         BBI = paste0("-")
       else
         BBI = paste0(W,"/",R)

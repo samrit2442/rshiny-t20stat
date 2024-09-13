@@ -11,19 +11,19 @@ download.file(url, dest = "dataset.zip", mode = "wb")
 unzip("dataset.zip", exdir = dataset_name)
 
 mydir = paste0(dataset_name, "/")
-### For Checking the last updated date
+# For Checking the last updated date ----
 readme <- list.files(path = mydir, pattern = "*.txt", full.names = TRUE)
 n.readLines(paste0(mydir, "/README.txt"), header = FALSE, n = 3,  skip = 121)
 
 t20_data = list.files(path = mydir, pattern = "*.csv", full.names = TRUE)
-# t20_data
+# t20_data ----
 
 class(t20_data[1])
 length(t20_data)
 
 t = vector(mode = "list", length = length(t20_data)/2)
 
-for(i in 1:(length(t20_data)/2))
+for (i in 1:(length(t20_data)/2))
 {
   t[[i]] = read.csv(file = t20_data[2*i - 1], header = T)
 }
